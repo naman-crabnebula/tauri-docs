@@ -13,6 +13,14 @@ import Stub from '@components/Stub.astro';
 
 Send native notifications to your user using the notification plugin.
 
+## Supported Platforms
+
+- Windows
+- macOS
+- Linux
+- iOS
+- Android
+
 ## Setup
 
 Install the notifications plugin to get started.
@@ -35,7 +43,7 @@ Install the notifications plugin to get started.
 
         2.  Modify `lib.rs` to initialize the plugin:
 
-            ```rust
+            ```rust ins={6}
             // lib.rs
             #[cfg_attr(mobile, tauri::mobile_entry_point)]
             pub fn run() {
@@ -60,14 +68,86 @@ Install the notifications plugin to get started.
 
 </Tabs>
 
+### Requesting Permission
+
+To send notifications to the user, appropriate permissions must be obtained beforehand.
+
+<Steps>
+<ol>
+    <li>
+    Check if permission is granted
+    <Tabs>
+        <TabItem label="Rust">
+        ```rust {1} {6}
+        use tauri_plugin_notification::NotificationExt;
+
+        #[tauri::command]
+        fn send_notification(app_handle: tauri::AppHandle) {
+            // Do you have permission to send a notification?
+            let mut state = app_handle.notification().permission_state().unwrap();
+        }
+        ```
+        </TabItem>
+        <TabItem label="JavaScript">
+        ```js
+        import isPermissionGranted from '@tauri-apps/plugin-notification';
+
+        // Do you have permission to send a notification?
+        let permissionGranted = await isPermissionGranted();
+        ```
+        </TabItem>
+    </Tabs>
+    </li>
+    <li>
+    Request permission if not granted
+    <Tabs>
+        <TabItem label="Rust">
+        ```rust {2} {10-12}
+        use tauri_plugin_notification::NotificationExt;
+        use tauri_plugin_notification::PermissionState;
+
+        #[tauri::command]
+        fn send_notification(app_handle: tauri::AppHandle) {
+            // Do you have permission to send a notification?
+            let mut state = app_handle.notification().permission_state().unwrap();
+
+            // If permissions are not already granted, we will need to request them.
+            if state != PermissionState::Granted {
+                state = app_handle.notification().request_permission().unwrap();
+            }
+        }
+        ```
+        </TabItem>
+        <TabItem label="JavaScript">
+        ```js {3} {10-13}
+        import {
+        isPermissionGranted,
+        requestPermission,
+        } from '@tauri-apps/plugin-notification';
+
+        // Do you have permission to send a notification?
+        let permissionGranted = await isPermissionGranted();
+
+        // If permissions are not already granted, we will need to request them.
+        if (!permissionGranted) {
+        const permission = await requestPermission();
+        permissionGranted = permission === 'granted';
+        }
+        ```
+        </TabItem>
+    </Tabs>
+    </li>
+</ol>
+</Steps>
+
 ## Usage
 
 Here are a few examples of how to use the notification plugin:
 
 - [Send notification to users](#send-notification)
 - [Add an action to a notification](#actions)
-- [Add an attachment to a notification](#attachments)
 - [Send a notification in a specific channel](#channels)
+- [Add an attachment to a notification](#attachments)
 
 {/* TODO: Link to which language to use, frontend vs. backend guide when it's made */}
 
@@ -75,36 +155,42 @@ The notification plugin is available in both JavaScript and Rust.
 
 ### Send Notification
 
-{/* TODO: Demo component */}
-
-Follow these steps to send a notification:
-
-    <Steps>
-    1. Check if permission is granted
-
-    2. Request permission if not granted
-
-    3. Send the notification
-    </Steps>
 
 <Tabs>
+<TabItem label="Rust">
+
+```rust ins={11-16}
+use tauri_plugin_notification::NotificationExt;
+use tauri_plugin_notification::PermissionState;
+
+#[tauri::command]
+fn send_notification(app_handle: tauri::AppHandle) {
+    let mut state = app_handle.notification().permission_state().unwrap();
+
+    // Once permission has been granted we can send the notification
+    if state == PermissionState::Granted {
+        // Build and send the Notification
+        app_handle.notification()
+            .builder()
+            .title("Tauri")
+            .body("Tauri is Awesome")
+            .show()
+            .unwrap();
+    }
+}
+```
+
+</TabItem>
+
 <TabItem label="JavaScript">
 
-```js
+```js ins={10}
 import {
   isPermissionGranted,
-  requestPermission,
   sendNotification,
 } from '@tauri-apps/plugin-notification';
 
-// Do you have permission to send a notification?
 let permissionGranted = await isPermissionGranted();
-
-// If not we need to request it
-if (!permissionGranted) {
-  const permission = await requestPermission();
-  permissionGranted = permission === 'granted';
-}
 
 // Once permission has been granted we can send the notification
 if (permissionGranted) {
@@ -113,28 +199,55 @@ if (permissionGranted) {
 ```
 
 </TabItem>
-<TabItem label="Rust">
-
-{/* TODO: */}
-
-<Stub />
-
-</TabItem>
 </Tabs>
 
 ### Actions
 
-{/* TODO: */}
+:::note[Supported Platforms]
 
-<Stub />
+This feature is exclusively available through **JavaScript** bindings and targets only **Android** devices for now.
 
-### Attachments
+:::
 
-{/* TODO: */}
+Notification actions are interactive elements within a notification that allow users to perform tasks directly from the notification itself, without opening the application. For example, sending the reply to messages, pausing the music etc.
 
-<Stub />
+To add Action to a notification, follow the given steps.
+
+<Steps>
+<ol>
+    <li> 
+    Add capabilities to the application
+
+    ```json title=capabilities/default.json ins={3-4}
+    {
+        "permissions": [
+                "notification:allow-register-action-types",
+                "notification:allow-register-listener"
+        ]
+    }
+    ```
+
+    </li>
+    <li>
+    </li>
+</ol>
+</Steps>
+
+
 
 ### Channels
+
+:::note[Supported Platforms]
+
+This feature is exclusively targets only **Android** devices for now.
+
+:::
+
+Notification channels are a way to group and manage notifications in Android applications. By default, all the notifications are sent to `Default` channel. To create and send notification in a custom channel:
+
+
+
+### Attachments
 
 {/* TODO: */}
 
