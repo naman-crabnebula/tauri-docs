@@ -6,7 +6,7 @@
   "version": "0.0.1",
   "scripts": {
     "dev:setup:submodules": "git submodule update --init",
-    "dev:setup:tauri": "pnpm install -C packages/tauri/tooling/api --ignore-workspace",
+    "dev:setup:tauri": "pnpm install -C packages/tauri/tooling/api --ignore-workspace --no-frozen-lockfile",
     "dev:setup:plugins-workspace": "pnpm --prefix packages/plugins-workspace install",
     "dev:setup": "pnpm dev:setup:submodules && pnpm dev:setup:tauri && pnpm dev:setup:plugins-workspace",
     "dev": "astro dev",
@@ -41,7 +41,7 @@
     "starlight-blog": "^0.9.0",
     "starlight-links-validator": "^0.9.0"
   },
-  "packageManager": "pnpm@9.3.0",
+  "packageManager": "pnpm@9.4.0",
   "engines": {
     "pnpm": "^9.0.0"
   }
