@@ -243,7 +243,116 @@ This feature is exclusively targets only **Android** devices for now.
 
 :::
 
-Notification channels are a way to group and manage notifications in Android applications. By default, all the notifications are sent to `Default` channel. To create and send notification in a custom channel:
+Notification channels are a way to group and manage notifications in Android applications. By default, all the notifications are sent to `Default` channel. To send a notification in a custom channel, follow the below steps.
+
+<Steps>
+<ol>
+    <li>
+    Create a new channel builder with channel id and name and add the desired properties to it.
+
+    <Tabs>
+        <TabItem label="Rust">
+        ```rust
+        #[cfg(target_os = "android")]
+        use tauri_plugin_notification::{Channel, Importance};
+
+        fn notification_channel(app_handle: tauri::AppHandle) {
+            #[cfg(target_os = "android")]{
+                // Create a new channel builder with channel id and name
+                let channel_builder = Channel::builder("tauri_channel_id", "Tauri Notification");
+
+                // Create the channel from channel builder
+                let channel = channel_builder
+
+                    // Add some configurations to the channel and build it
+                    .description("Describe the type of notifications channel contains")
+                    .lights(true)
+                    .vibration(false)
+                    .importance(Importance::High)
+
+                    .build();
+
+                // Register the channel with the application
+                app_handle.notification().create_channel(channel);
+            }
+        }
+        ```
+        </TabItem>
+        <TabItem label="JavaScript">
+
+        First of all, `create_channel` add capabilities to the application.
+
+        ```json title=capabilities/default.json ins={3}
+        {
+            "permissions": [
+                    "notification:allow-create-channel",
+            ]
+        }
+        ```
+
+        Then, add the following snippet in your JavaScript code to create a channel.
+
+        ```js
+        import {createChannel, Importance, Visibility} from "@tauri-apps/plugin-notification";
+
+        await createChannel({
+            id: 'tauri_channel_id',
+            name: 'Tauri Notification',
+            description: 'Describe the type of notifications channel contains',
+            lights: true,
+            vibration: false,
+            importance: Importance.Default,
+        });
+        ```
+        </TabItem>
+    </Tabs>
+    </li>
+    <li> 
+    Now, you can simply add the **channel id** to the notification that you want to send to this channel.
+
+    <Tabs>
+        <TabItem label="Rust">
+        ```rust ins={7}
+        fn send_notification(app_handle: tauri::AppHandle) {
+            app_handle
+                .notification()
+                .builder()
+                .title("Tauri")
+                .body("Tauri channels are so easy to use in rust!")
+                .channel_id("tauri_channel_id")
+                .show()
+                .expect("Failed to show the notification");
+        }
+        ```
+        </TabItem>
+        <TabItem label="JavaScript">
+
+        ```js ins={4}
+        sendNotification({
+            title: 'Tauri',
+            body: 'Tauri channels are so easy to use!',
+            channelId: 'tauri_channel_id'
+        });
+        ```
+        </TabItem>
+    </Tabs>
+    </li>
+    {/* <li>
+    Now, if you have too many channels gathering dust, don't hesitate to tidy up and delete the ones you don't use.
+    <Tabs>
+        <TabItem label="Rust">
+        ```rust
+        ```
+        </TabItem>
+        <TabItem label="JavaScript">
+
+        ```js
+        ```
+        </TabItem>
+    </Tabs>
+    </li> */}
+</ol>
+</Steps>
 
 
 
