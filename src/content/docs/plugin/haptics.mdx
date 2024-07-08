@@ -1,0 +1,146 @@
+---
+title: Haptics
+description: Add haptic feedback with vibration effects for rich and tactile interactions
+---
+
+import PluginLinks from '@components/PluginLinks.astro';
+import { Tabs, TabItem, Steps } from '@astrojs/starlight/components';
+import CommandTabs from '@components/CommandTabs.astro';
+
+<PluginLinks plugin="haptics" />
+
+Add haptic feedback to your mobile application with vibration effects for rich and tactile interactions using the Haptics Plugin
+
+## Supported Platforms
+
+- Android
+- iOS
+
+## Setup
+
+Install the Haptics plugin to get started.
+
+<Tabs>
+  <TabItem label="Automatic">
+
+    Use your project's package manager to add the dependency:
+
+    <CommandTabs npm="npm run tauri add haptics"
+          yarn="yarn run tauri add haptics"
+          pnpm="pnpm tauri add haptics"
+          bun="bun tauri add haptics"
+          cargo="cargo tauri add haptics" />
+
+  </TabItem>
+  <TabItem label="Manual">
+    <Steps>
+
+    1.  Run `cargo add tauri-plugin-haptics` to add the plugin to the project's dependencies in `Cargo.toml`.
+
+    2.  Modify `lib.rs` to initialize the plugin:
+
+        ```rust
+        // lib.rs
+        #[cfg_attr(mobile, tauri::mobile_entry_point)]
+        pub fn run() {
+            tauri::Builder::default()
+                // Initialize the plugin
+                .plugin(tauri_plugin_haptics::init())
+                .run(tauri::generate_context!())
+                .expect("error while running tauri application");
+        }
+        ```
+
+    3.  If you'd like to use in JavaScript then install the npm package as well:
+
+        <CommandTabs
+            npm="npm install @tauri-apps/plugin-haptics"
+            yarn="yarn add @tauri-apps/plugin-haptics"
+            pnpm="pnpm add @tauri-apps/plugin-haptics"
+            bun="bun add @tauri-apps/plugin-haptics"
+        />
+
+    </Steps>
+
+  </TabItem>
+</Tabs>
+
+## Permissions
+
+By default all plugin commands are blocked and cannot be accessed in JavaScript.
+You must define a list of permissions in your `capabilities` configuration.
+
+See [Permissions Overview](/security/permissions/) for more information.
+
+```json title="src-tauri/capabilities/main.json" ins={4-6}
+{
+  "permissions": [
+    ...,
+    "haptics:allow-impact-feedback",
+    "haptics:allow-notification-feedback",
+    "haptics:allow-selection-feedback",
+    "haptics:allow-vibrate"
+  ]
+}
+```
+
+## Usage
+
+With this plugin you can send haptic feedbacks using various vibration patterns. See all available functions in the [JavaScript API](/reference/javascript/haptics/) or [Rust API](https://docs.rs/tauri-plugin-haptics/) references.
+
+#### Vibrate
+
+This function simply vibrates the mobile phone for the specified duration in **milliseconds**
+
+<Tabs>
+<TabItem label="JavaScript">
+
+```js
+const { vibrate } = window.__TAURI__.haptics;
+// Vibrate for 1 second
+await vibrate(1000);
+```
+
+</TabItem>
+<TabItem label="Rust">
+
+```rust ins={5}
+use tauri_plugin_haptics::HapticsExt;
+
+fn send_haptic(app_handle: tauri::AppHandle) {
+  // Vibrate for 1 second
+  app_handle.haptics().vibrate(1000).expect("Could not perform vibrate function");
+}
+```
+
+</TabItem>
+</Tabs>
+
+#### Impact Feedback
+
+This function vibrates the mobile phone according to impact feedback selected.
+
+<Tabs>
+<TabItem label="JavaScript">
+
+```js
+const { impactFeedback } = window.__TAURI__.haptics;
+// Vibrate for heavy impact feedback
+await impactFeedback("heavy");
+```
+
+</TabItem>
+<TabItem label="Rust">
+
+```rust ins={5}
+use tauri_plugin_haptics::{HapticsExt, ImpactFeedbackStyle};
+
+fn send_haptic(app_handle: tauri::AppHandle) {
+  // Vibrate for heavy impact feedback
+  app_handle.haptics().impact_feedback(ImpactFeedbackStyle::Heavy).expect("Could not perform impact feedback function");
+}
+```
+
+</TabItem>
+</Tabs>
+
